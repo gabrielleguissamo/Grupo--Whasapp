@@ -5,13 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Entrar no Grupo VIP do WhatsApp</title>
   <meta name="description" content="Acesso direto ao grupo VIP do WhatsApp do evento Autoimagem 11/11.">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
   <style>
+    :root { color-scheme: dark; }
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:0;background:#0f172a;color:#e5e7eb;display:flex;min-height:100vh;align-items:center;justify-content:center}
     .card{background:#111827;padding:28px;border-radius:20px;width:min(520px,92vw);box-shadow:0 10px 30px rgba(0,0,0,.35);text-align:center}
     h1{font-size:1.4rem;margin:.2rem 0 1rem}
     p{opacity:.9;line-height:1.5}
     .btn{display:block;padding:14px 18px;border-radius:14px;text-decoration:none;font-weight:700;margin-top:14px;border:1px solid rgba(255,255,255,.12)}
     .primary{background:#22c55e;color:#0b1419;border:none}
+    .secondary{background:#0b1419;color:#e5e7eb}
     .hint{font-size:.85rem;opacity:.75;margin-top:10px}
   </style>
 
@@ -22,7 +26,7 @@
     n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
     t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)})
     (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init','2284284562002825');
+    fbq('init','2284284562002825');      // seu Pixel
     fbq('track','PageView');
   </script>
   <noscript><img height="1" width="1" style="display:none"
@@ -30,32 +34,83 @@
   <!-- /Meta Pixel -->
 
   <script>
-    const directLink = "https://chat.whatsapp.com/JUXqnt3FqeEJJw15tQZFlr?mode=wwt";
+    // Configurações do grupo
+    const inviteCode = "JUXqnt3FqeEJJw15tQZFlr";
+    const deepLink   = "whatsapp://chat?code=" + inviteCode; // app direto
+    const webLink    = "https://chat.whatsapp.com/" + inviteCode + "?mode=wwt"; // oficial (abre app/desktop)
 
-    function fireLead(){
-      try {
+    // Detecção simples
+    const ua = navigator.userAgent || "";
+    const isAndroid = /Android/i.test(ua);
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isMobile = isAndroid || isIOS;
+
+    // Dispara Lead uma única vez
+    let leadFired = false;
+    function fireLeadOnce(source){
+      if(leadFired) return;
+      leadFired = true;
+      try{
+        fbq('trackCustom','WA_Lead_Source',{source});
         fbq('track','Lead');
-        fbq('trackCustom','WA_Lead_Click');
-      } catch(e){}
+      }catch(e){}
     }
 
-    // Tenta abrir automaticamente no app WhatsApp
+    // Tenta abrir o app primeiro; se não rolar, cai no link web oficial
+    function forceJoin(auto=false){
+      try{ fbq('trackCustom', auto ? 'WA_AutoOpen' : 'WA_ManualOpen'); }catch(e){}
+      // 1) tentativa de deep link (app)
+      const t0 = Date.now();
+      let didHide = false;
+      const visHandler = () => { if (document.hidden) didHide = true; };
+      document.addEventListener('visibilitychange', visHandler, {once:true});
+
+      // Abre app
+      window.location.href = deepLink;
+
+      // 2) fallback controlado
+      setTimeout(function(){
+        // Se a aba não ficou oculta (provavelmente app não abriu), usa o link oficial
+        if(!didHide){
+          window.location.href = webLink;
+        }
+        document.removeEventListener('visibilitychange', visHandler);
+      }, isIOS ? 900 : 700); // iOS costuma precisar de um pouco mais
+    }
+
+    // Auto-tentativa ao carregar (com pequeno atraso p/ Pixel iniciar)
     window.addEventListener('load', function(){
-      try{ fbq('trackCustom','WA_AutoOpen'); }catch(e){}
-      window.location.href = directLink;
+      setTimeout(function(){ forceJoin(true); }, 250);
     });
+
+    // Handlers de clique (garantem Lead e deixam o href agir)
+    function onPrimaryClick(e){
+      try{ fbq('trackCustom','WA_Click_Primary'); }catch(e){}
+      fireLeadOnce('primary_button');
+      // não preventDefault(): deixamos o href executar
+    }
+    function onSecondaryClick(e){
+      try{ fbq('trackCustom','WA_Click_Secondary'); }catch(e){}
+      fireLeadOnce('secondary_button');
+    }
   </script>
 </head>
 <body>
   <div class="card">
-    <h1>Evento Autoimagem 11/11 💫</h1>
-    <p>Se o grupo não abrir automaticamente, toque abaixo:</p>
+    <h1>Grupo VIP no WhatsApp</h1>
+    <p>Se não abrir automaticamente, toque no botão abaixo:</p>
 
+    <!-- Botão principal: app direto -->
     <a class="btn primary"
-       href="https://chat.whatsapp.com/JUXqnt3FqeEJJw15tQZFlr?mode=wwt"
-       onclick="fireLead()">🚀 Entrar no grupo agora</a>
+       href="whatsapp://chat?code=JUXqnt3FqeEJJw15tQZFlr"
+       onclick="onPrimaryClick(event)">🚀 Entrar no grupo agora</a>
 
-    <p class="hint">Dica: se estiver no Instagram, abra no navegador antes de clicar.</p>
+    <!-- Fallback visível: link oficial (ativa app/desktop) -->
+    <a class="btn secondary"
+       href="https://chat.whatsapp.com/JUXqnt3FqeEJJw15tQZFlr?mode=wwt"
+       onclick="onSecondaryClick(event)">✅ Entrar pelo link oficial</a>
+
+    <p class="hint">Dica: no Instagram, toque em ⋯ e <b>Abrir no navegador</b> se nada acontecer.</p>
   </div>
 </body>
 </html>
