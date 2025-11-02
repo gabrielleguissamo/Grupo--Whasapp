@@ -6,36 +6,79 @@
   <title>Entrar no Grupo VIP do WhatsApp</title>
   <meta name="description" content="Abrir diretamente o grupo VIP do WhatsApp.">
   <style>
-    body{font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif; margin:0; padding:0; background:#0f172a; color:#e5e7eb; display:flex; min-height:100vh; align-items:center; justify-content:center}
-    .card{background:#111827; padding:28px; border-radius:20px; width:min(520px,92vw); box-shadow:0 10px 30px rgba(0,0,0,.35); text-align:center}
-    h1{font-size:1.4rem; margin:.2rem 0 1rem}
-    p{opacity:.9; line-height:1.5}
-    .btn{display:block; padding:14px 18px; border-radius:14px; text-decoration:none; font-weight:700; margin-top:14px; border:1px solid rgba(255,255,255,.12)}
-    .primary{background:#22c55e; color:#0b1419; border:none}
-    .secondary{background:#0b1419; color:#e5e7eb}
-    .hint{font-size:.85rem; opacity:.75; margin-top:10px}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;padding:0;background:#0f172a;color:#e5e7eb;display:flex;min-height:100vh;align-items:center;justify-content:center}
+    .card{background:#111827;padding:28px;border-radius:20px;width:min(520px,92vw);box-shadow:0 10px 30px rgba(0,0,0,.35);text-align:center}
+    h1{font-size:1.4rem;margin:.2rem 0 1rem}
+    p{opacity:.9;line-height:1.5}
+    .btn{display:block;padding:14px 18px;border-radius:14px;text-decoration:none;font-weight:700;margin-top:14px;border:1px solid rgba(255,255,255,.12)}
+    .primary{background:#22c55e;color:#0b1419;border:none}
+    .secondary{background:#0b1419;color:#e5e7eb}
+    .hint{font-size:.85rem;opacity:.75;margin-top:10px}
   </style>
+
+  <!-- Meta Pixel -->
+  <script>
+    !(function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)})
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init','2284284562002825');  // <-- Seu Pixel
+    fbq('track','PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=2284284562002825&ev=PageView&noscript=1"/></noscript>
+  <!-- /Meta Pixel -->
+
   <script>
     const inviteCode = "JUXqnt3FqeEJJw15tQZFlr";
-    const deepLink = "whatsapp://chat?code=" + inviteCode;
-    const webLink  = "https://chat.whatsapp.com/" + inviteCode;
+    const deepLink = "whatsapp://chat?code="+inviteCode;
+    const webLink  = "https://chat.whatsapp.com/"+inviteCode;
 
-    function openApp() {
+    let leadFired = false;
+    function fireLeadOnce(source){
+      if(leadFired) return;
+      leadFired = true;
+      try{
+        fbq('trackCustom','WA_Lead_Source',{source});
+        fbq('track','Lead'); // <-- dispara o evento Lead
+      }catch(e){}
+    }
+
+    function openApp(auto=false){
+      try{ fbq('trackCustom', auto ? 'WA_AutoOpen' : 'WA_ManualOpen'); }catch(e){}
       window.location.href = deepLink;
       setTimeout(function(){ window.location.href = webLink; }, 1200);
     }
 
     window.addEventListener('load', function(){
-      openApp();
+      setTimeout(function(){ openApp(true); }, 250);
     });
+
+    function onPrimaryClick(e){
+      try{ fbq('trackCustom','WA_Click_Primary'); }catch(e){}
+      fireLeadOnce('primary_button');
+    }
+
+    function onSecondaryClick(e){
+      try{ fbq('trackCustom','WA_Click_Secondary'); }catch(e){}
+      fireLeadOnce('secondary_button');
+    }
   </script>
 </head>
 <body>
   <div class="card">
     <h1>Grupo VIP no WhatsApp</h1>
     <p>Se não abrir automaticamente, toque no botão abaixo:</p>
-    <a class="btn primary" href="whatsapp://chat?code=JUXqnt3FqeEJJw15tQZFlr">🚀 Abrir no WhatsApp</a>
-    <a class="btn secondary" href="https://chat.whatsapp.com/JUXqnt3FqeEJJw15tQZFlr">✅ Entrar pelo link oficial</a>
+
+    <a class="btn primary"
+       href="whatsapp://chat?code=JUXqnt3FqeEJJw15tQZFlr"
+       onclick="onPrimaryClick(event)">🚀 Abrir no WhatsApp</a>
+
+    <a class="btn secondary"
+       href="https://chat.whatsapp.com/JUXqnt3FqeEJJw15tQZFlr"
+       onclick="onSecondaryClick(event)">✅ Entrar pelo link oficial</a>
+
     <p class="hint">Dica: se estiver no Instagram e nada acontecer, toque nos três pontinhos e escolha <b>Abrir no navegador</b>.</p>
   </div>
 </body>
