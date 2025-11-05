@@ -93,6 +93,7 @@
     const isIOS     = /iPhone|iPad|iPod/i.test(ua);
     const isAndroid = /Android/i.test(ua);
 
+    // >>> LEAD SÓ EM CLIQUE, NÃO NA ENTRADA DA PÁGINA <<<
     let leadFired = false;
     function fireLead(source){
       if(leadFired) return;
@@ -103,54 +104,47 @@
       }catch(e){}
     }
 
-    // Marca quando o app realmente abre (aba fica oculta)
+    // Marca quando o app realmente abre (aba some)
     document.addEventListener('visibilitychange', function(){
       if(document.hidden){
         try{ fbq('trackCustom','WA_Opened_App'); }catch(e){}
       }
     });
 
+    // Tenta abrir app + fallback
     function goToWhatsApp(auto){
       try{ fbq('trackCustom', auto ? 'WA_AutoOpen' : 'WA_ManualOpen'); }catch(e){}
-      fireLead(auto ? 'auto_open' : 'button_click');
 
-      // 1) tenta abrir app
+      // 1) tenta abrir o app
       window.location.href = deepLink;
 
-      // 2) fallback rápido pro link oficial (web/deskop)
-      const delay = isIOS ? 800 : 600; // atraso técnico mínimo, imperceptível
+      // 2) fallback rápido pro link oficial
+      const delay = isIOS ? 800 : 600;
       setTimeout(function(){
-        // se o app tiver aberto, a aba já vai estar em background;
-        // se não, garantimos o link oficial
         if(!document.hidden){
           window.location.href = webLink;
         }
       }, delay);
     }
 
-    // Ao carregar a página:
+    // Auto-open SEM lead automático
     window.addEventListener('load', function(){
-      // dispara lead automático ao entrar na página
-      fireLead('page_view');
-      // pequena espera só pra fila do pixel registrar antes do redirect
       setTimeout(function(){ goToWhatsApp(true); }, 150);
     });
 
-    // Cliques manuais nos botões
+    // Cliques manuais nos botões (AQUI sim vira Lead)
     function onPrimaryClick(e){
-      // deixamos o href agir + disparamos métricas
+      e.preventDefault();                     // não deixa o href assumir sozinho
       try{ fbq('trackCustom','WA_Click_Primary'); }catch(e){}
-      fireLead('primary_button');
-      // também forçamos a lógica de deep link + fallback
-      e.preventDefault();
-      goToWhatsApp(false);
+      fireLead('primary_button');            // LEAD dispara aqui
+      goToWhatsApp(false);                   // força abertura do app + fallback
     }
     function onSecondaryClick(e){
-      try{ fbq('trackCustom','WA_Click_Secondary'); }catch(e){}
-      fireLead('secondary_button');
-      // aqui deixamos só o href funcionar (abre direto o link oficial)
-      // se quiser a mesma lógica do primary, basta descomentar:
+      // Se quiser, pode usar mesma lógica do primary:
       // e.preventDefault(); goToWhatsApp(false);
+      try{ fbq('trackCustom','WA_Click_Secondary'); }catch(e){}
+      fireLead('secondary_button');          // LEAD também conta aqui
+      // deixamos o href agir normalmente
     }
   </script>
 </head>
