@@ -4,34 +4,62 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Entrar no Grupo VIP do WhatsApp</title>
-  <meta name="description" content="Acesso direto ao grupo VIP do WhatsApp do evento Autoimagem 11/11.">
+  <meta name="description" content="Acesso direto ao grupo VIP do WhatsApp do evento Autoimagem 11/11 com Rafael Narval.">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
   <style>
     :root { color-scheme: dark; }
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
       margin:0;padding:0;
-      background:#0f172a;color:#e5e7eb;
+      background:#020617;color:#e5e7eb;
       display:flex;min-height:100vh;
       align-items:center;justify-content:center
     }
     .card{
-      background:#111827;padding:28px;border-radius:20px;
+      background:#020617;
+      border-radius:24px;
+      padding:32px 24px;
       width:min(520px,92vw);
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-      text-align:center
+      box-shadow:0 18px 50px rgba(15,23,42,.7),
+                 0 0 0 1px rgba(148,163,184,.2);
+      text-align:center;
     }
-    h1{font-size:1.4rem;margin:.2rem 0 1rem}
-    p{opacity:.9;line-height:1.5}
+    h1{font-size:1.45rem;margin:.2rem 0 .75rem}
+    h2{font-size:.9rem;text-transform:uppercase;letter-spacing:.18em;opacity:.75;margin:0 0 .6rem}
+    p{opacity:.9;line-height:1.5;margin:.2rem 0}
     .btn{
-      display:block;padding:14px 18px;border-radius:14px;
-      text-decoration:none;font-weight:700;
-      margin-top:14px;border:1px solid rgba(255,255,255,.12)
+      display:block;
+      padding:15px 18px;
+      border-radius:14px;
+      text-decoration:none;
+      font-weight:700;
+      margin-top:14px;
+      border:1px solid rgba(148,163,184,.35);
+      cursor:pointer;
     }
-    .primary{background:#22c55e;color:#0b1419;border:none}
-    .secondary{background:#0b1419;color:#e5e7eb}
-    .hint{font-size:.85rem;opacity:.75;margin-top:10px}
+    .primary{
+      background:#22c55e;
+      color:#052e16;
+      border:none;
+    }
+    .primary:hover{filter:brightness(1.05);}
+    .secondary{
+      background:rgba(15,23,42,1);
+      color:#e5e7eb;
+    }
+    .secondary:hover{background:#020617;}
+    .hint{font-size:.8rem;opacity:.7;margin-top:12px}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(34,197,94,.1);
+      color:#bbf7d0;
+      font-size:.75rem;
+      margin-bottom:8px;
+    }
   </style>
 
   <!-- Meta Pixel -->
@@ -44,7 +72,7 @@
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)
     })(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init','2284284562002825'); // SEU PIXEL
+    fbq('init','2284284562002825');       // SEU PIXEL
     fbq('track','PageView');
   </script>
   <noscript>
@@ -54,48 +82,85 @@
   <!-- /Meta Pixel -->
 
   <script>
-    // Configuração do grupo
-    const inviteCode = "E53q8g8PcfKFYo7Da3d06l";
-    const deepLink   = "whatsapp://chat?code=" + inviteCode;
-    const webLink    = "https://chat.whatsapp.com/" + inviteCode + "?mode=wwt";
+    // =========================
+    // CONFIG DO GRUPO
+    // =========================
+    const inviteCode = "E53q8g8PcfKFYo7Da3d06l"; // <- se mudar de grupo, troca só aqui
+    const deepLink   = "whatsapp://chat?code=" + inviteCode;                // app direto
+    const webLink    = "https://chat.whatsapp.com/" + inviteCode + "?mode=wwt"; // link oficial
 
-    const ua = navigator.userAgent || "";
-    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const ua        = navigator.userAgent || "";
+    const isIOS     = /iPhone|iPad|iPod/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
 
-    // 🔥 Dispara Lead automático ao entrar na página
-    window.addEventListener('load', function(){
-      try {
-        fbq('track','Lead');
-        fbq('trackCustom','WA_Lead_Auto');
-      } catch(e) {}
-
-      // tentativa automática de abrir o app
-      try{ fbq('trackCustom','WA_AutoOpen'); }catch(e){}
-      setTimeout(function(){
-        window.location.href = deepLink;
-        setTimeout(function(){ window.location.href = webLink; }, isIOS ? 900 : 700);
-      }, 400);
-    });
-
-    // Cliques (caso a pessoa toque manualmente)
-    function onPrimaryClick(e){
+    let leadFired = false;
+    function fireLead(source){
+      if(leadFired) return;
+      leadFired = true;
       try{
-        fbq('trackCustom','WA_Click_Primary');
         fbq('track','Lead');
+        fbq('trackCustom','WA_Lead_Source',{source});
       }catch(e){}
     }
+
+    // Marca quando o app realmente abre (aba fica oculta)
+    document.addEventListener('visibilitychange', function(){
+      if(document.hidden){
+        try{ fbq('trackCustom','WA_Opened_App'); }catch(e){}
+      }
+    });
+
+    function goToWhatsApp(auto){
+      try{ fbq('trackCustom', auto ? 'WA_AutoOpen' : 'WA_ManualOpen'); }catch(e){}
+      fireLead(auto ? 'auto_open' : 'button_click');
+
+      // 1) tenta abrir app
+      window.location.href = deepLink;
+
+      // 2) fallback rápido pro link oficial (web/deskop)
+      const delay = isIOS ? 800 : 600; // atraso técnico mínimo, imperceptível
+      setTimeout(function(){
+        // se o app tiver aberto, a aba já vai estar em background;
+        // se não, garantimos o link oficial
+        if(!document.hidden){
+          window.location.href = webLink;
+        }
+      }, delay);
+    }
+
+    // Ao carregar a página:
+    window.addEventListener('load', function(){
+      // dispara lead automático ao entrar na página
+      fireLead('page_view');
+      // pequena espera só pra fila do pixel registrar antes do redirect
+      setTimeout(function(){ goToWhatsApp(true); }, 150);
+    });
+
+    // Cliques manuais nos botões
+    function onPrimaryClick(e){
+      // deixamos o href agir + disparamos métricas
+      try{ fbq('trackCustom','WA_Click_Primary'); }catch(e){}
+      fireLead('primary_button');
+      // também forçamos a lógica de deep link + fallback
+      e.preventDefault();
+      goToWhatsApp(false);
+    }
     function onSecondaryClick(e){
-      try{
-        fbq('trackCustom','WA_Click_Secondary');
-        fbq('track','Lead');
-      }catch(e){}
+      try{ fbq('trackCustom','WA_Click_Secondary'); }catch(e){}
+      fireLead('secondary_button');
+      // aqui deixamos só o href funcionar (abre direto o link oficial)
+      // se quiser a mesma lógica do primary, basta descomentar:
+      // e.preventDefault(); goToWhatsApp(false);
     }
   </script>
 </head>
 <body>
   <div class="card">
+    <div class="badge">🔥 Acesso oficial ao grupo do evento</div>
+    <h2>Evento Autoimagem 11/11 • Rafael Narval</h2>
     <h1>Grupo VIP no WhatsApp</h1>
-    <p>Se não abrir automaticamente, toque no botão abaixo:</p>
+    <p>Seu acesso ao conteúdo, avisos e link da aula passa por aqui.</p>
+    <p><strong>Se o grupo não abrir sozinho, toque no botão abaixo:</strong></p>
 
     <a class="btn primary"
        href="whatsapp://chat?code=E53q8g8PcfKFYo7Da3d06l"
@@ -105,7 +170,10 @@
        href="https://chat.whatsapp.com/E53q8g8PcfKFYo7Da3d06l?mode=wwt"
        onclick="onSecondaryClick(event)">✅ Entrar pelo link oficial</a>
 
-    <p class="hint">Dica: se estiver no Instagram, toque em ⋯ e escolha <b>Abrir no navegador</b>.</p>
+    <p class="hint">
+      Dica: se estiver dentro do Instagram e nada acontecer,<br>
+      toque em <b>⋯</b> e escolha <b>Abrir no navegador</b> e clique novamente.
+    </p>
   </div>
 </body>
 </html>
